@@ -1,9 +1,10 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace CMP.Scripts
 {
-    public enum Direction
+    public enum InputDirection
     {
         None,
         Left,
@@ -19,33 +20,60 @@ namespace CMP.Scripts
         public Button UpButton;
         public Button DownButton;
 
-        Direction _currentDirection;
+        InputDirection _currentDirection;
         
         private void Awake()
         {
             LeftButton.onClick.AddListener(() =>
             {
-                _currentDirection = Direction.Left;
+                _currentDirection = InputDirection.Left;
             });
             RightButton.onClick.AddListener(() =>
             {
-                _currentDirection = Direction.Right;
+                _currentDirection = InputDirection.Right;
             });
             UpButton.onClick.AddListener(() =>
             {
-                _currentDirection = Direction.Up;
+                _currentDirection = InputDirection.Up;
             });
             DownButton.onClick.AddListener(() =>
             {
-                _currentDirection = Direction.Down;
+                _currentDirection = InputDirection.Down;
             });
         }
 
-        public Direction ConsumeInput()
+#if UNITY_EDITOR
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.W))
+            {
+                _currentDirection = InputDirection.Up;
+            }
+            else if (Input.GetKeyDown(KeyCode.A))
+            {
+                _currentDirection = InputDirection.Left;
+            }
+            else if (Input.GetKeyDown(KeyCode.S))
+            {
+                _currentDirection = InputDirection.Down;
+            }
+            else if (Input.GetKeyDown(KeyCode.D))
+            {
+                _currentDirection = InputDirection.Right;
+            }
+        }
+#endif
+
+        public InputDirection ConsumeInput()
         {
             var dir = _currentDirection;
-            _currentDirection = Direction.None;
+            _currentDirection = InputDirection.None;
             return dir;
+        }
+        
+        public InputDirection PeekInput()
+        {
+            return _currentDirection;
         }
     }
 }

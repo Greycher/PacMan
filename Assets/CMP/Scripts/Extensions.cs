@@ -21,19 +21,19 @@ namespace CMP.Scripts
             };
         }
 
-        public static Vector2Int ToVector2Int(this Direction cellType)
+        public static Vector2Int ToVector2Int(this InputDirection cellType)
         {
             switch (cellType)
             {
-                case Direction.None:
+                case InputDirection.None:
                     return Vector2Int.zero;
-                case Direction.Left:
+                case InputDirection.Left:
                     return Vector2Int.left;
-                case Direction.Right:
+                case InputDirection.Right:
                     return Vector2Int.right;
-                case Direction.Up:
+                case InputDirection.Up:
                     return Vector2Int.up;
-                case Direction.Down:
+                case InputDirection.Down:
                     return Vector2Int.down;
             }
 
@@ -41,51 +41,51 @@ namespace CMP.Scripts
             return Vector2Int.zero;
         }
 
-        public static Direction Reverse(this Direction direction)
+        public static InputDirection Reverse(this InputDirection direction)
         {
             return direction switch
             {
-                Direction.Left => Direction.Right,
-                Direction.Right => Direction.Left,
-                Direction.Up => Direction.Down,
-                Direction.Down => Direction.Up,
-                _ => Direction.None
+                InputDirection.Left => InputDirection.Right,
+                InputDirection.Right => InputDirection.Left,
+                InputDirection.Up => InputDirection.Down,
+                InputDirection.Down => InputDirection.Up,
+                _ => InputDirection.None
             };
         }
         
-        public static Direction ToDirection(this Vector2Int vector)
+        public static InputDirection ToDirection(this Vector2Int vector)
         {
             if (vector == Vector2Int.left)
             {
-                return Direction.Left;
+                return InputDirection.Left;
             }
             if (vector == Vector2Int.right)
             {
-                return Direction.Right;
+                return InputDirection.Right;
             }
             if (vector == Vector2Int.up)
             {
-                return Direction.Up;
+                return InputDirection.Up;
             }
             if (vector == Vector2Int.down)
             {
-                return Direction.Down;
+                return InputDirection.Down;
             }
 
-            return Direction.None;
+            return InputDirection.None;
         }
 
-        public static Quaternion ToQuaternion(this Direction dir)
+        public static Quaternion ToQuaternion(this InputDirection dir)
         {
             switch (dir)
             {
-                case Direction.Left:
+                case InputDirection.Left:
                     return Quaternion.Euler(0, 0, 90);
-                case Direction.Right:
+                case InputDirection.Right:
                     return Quaternion.Euler(0, 0, -90);
-                case Direction.Up:
+                case InputDirection.Up:
                     return Quaternion.Euler(0, 0, 0);
-                case Direction.Down:
+                case InputDirection.Down:
                     return Quaternion.Euler(0, 0, 180);
             }
             

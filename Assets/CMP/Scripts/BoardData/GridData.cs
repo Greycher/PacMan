@@ -62,5 +62,10 @@ namespace CMP.Scripts
         {
             return GetInBounds(cellCoords) && availableCells.Contains(GetCellAt(cellCoords));
         }
+
+        public Vector2Int GetClosestCell(Vector3 position)
+        {
+            return new Vector2Int(Mathf.RoundToInt(position.x), Mathf.RoundToInt(position.y));
+        }
     }
 }

@@ -25,6 +25,9 @@ namespace CMP.Scripts
             _inputManager = Instantiate(AssetDatabase.Instance.InputManagerPrefab);
             CreateBackground(gridData);
             AdjustCamera(gridData);
+            
+            _pacman.Inject(gridData, _inputManager);
+            _pacman.StartMoving();
         }
 
         private void CreateBackground(GridData gridData)
