@@ -20,7 +20,7 @@ namespace CMP.Scripts.AiStates
         {
             _cancellationTokenSource = new CancellationTokenSource();
             GhostBlackboard.CharacterNavigator.
-                Navigate(_pacman, _movableCellTypes, _cancellationTokenSource.Token).Forget(Debug.LogError);
+                Navigate(_pacman, _movableCellTypes, _cancellationTokenSource.Token, true).Forget(Debug.LogError);
         }
         
         public override void Update() { }

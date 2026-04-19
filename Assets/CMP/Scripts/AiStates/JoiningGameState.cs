@@ -1,5 +1,4 @@
 using System;
-using Cysharp.Threading.Tasks;
 using System.Threading;
 using CMP.Scripts.CellSource;
 using CMP.Scripts.Character;
@@ -23,7 +22,7 @@ namespace CMP.Scripts.AiStates
             _cancellationTokenSource = new CancellationTokenSource();
             var targetCell = GhostBlackboard.GridData.GetCoordsOfCellType(CellType.JoinGameCell)[0];
             var token = _cancellationTokenSource.Token;
-            await GhostBlackboard.CharacterNavigator.Navigate(new StaticCellSource(targetCell), _movableCellTypes, token);
+            await GhostBlackboard.CharacterNavigator.Navigate(new StaticCellSource(targetCell), _movableCellTypes, token, false);
             if (token.IsCancellationRequested) return;
             _onJoinAction?.Invoke();
         }

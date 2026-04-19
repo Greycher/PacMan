@@ -4,17 +4,17 @@ namespace CMP.Scripts.Helper
 {
 	public static class Utility
 	{
-		public static Vector2Int InputDirectionToDirection(InputDirection direction)
+		public static Vector2Int InputDirectionToDirection(Direction direction)
 		{
 			switch (direction)
 			{
-				case InputDirection.Up:
+				case Direction.Up:
 					return Vector2Int.up;
-				case InputDirection.Down:
+				case Direction.Down:
 					return Vector2Int.down;
-				case InputDirection.Left:
+				case Direction.Left:
 					return Vector2Int.left;
-				case InputDirection.Right:
+				case Direction.Right:
 					return Vector2Int.right;
 				default:
 					return Vector2Int.zero;

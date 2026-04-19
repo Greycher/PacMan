@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using CMP.Scripts.Helper;
 using Cysharp.Threading.Tasks;
@@ -21,6 +22,7 @@ namespace CMP.Scripts
         private InputManager _inputManager;
         private GameMode _gameMode = GameMode.Scatter;
         private List<Ghost> _ghosts;
+        private CancellationTokenSource _cancellationTokenSource;
 
         private void Start()
         {
@@ -30,7 +32,8 @@ namespace CMP.Scripts
             _inputManager = Instantiate(AssetDatabase.Instance.InputManagerPrefab);
             _pacman = CreatePlayer(_inputManager, gridData);
             _ghosts = CreateGhosts(_pacman, gridData, OnPackManSeen);
-            StartGame(CancellationToken.None).Forget(Debug.LogError);
+            _cancellationTokenSource = new CancellationTokenSource();
+            StartGame(_cancellationTokenSource.Token).Forget(Debug.LogError);
         }
         
         private void CreateBackground(GridData gridData)
@@ -117,16 +120,7 @@ namespace CMP.Scripts
         
         private bool DidAnyGhostCatchPackMan()
         {
-            var pacManPos = _pacman.transform.position;
-            foreach (var ghost in _ghosts)
-            {
-                if (Vector3.Distance(ghost.transform.position, pacManPos) <= GameSettings.CatchDistance)
-                {
-                    return true;
-                }
-            }
-            
-            return false;
+            return _ghosts.Any(ghost => Vector3.Distance(_pacman.transform.position, ghost.transform.position) <= GameSettings.CatchDistance);
         }
         
         private void OnGameFail()
@@ -134,11 +128,16 @@ namespace CMP.Scripts
             _gameMode = GameMode.GameOver;
             Debug.Log("Game Fail");
             _pacman.OnFail();
+            _cancellationTokenSource?.Cancel();
             foreach (var ghost in _ghosts)
             {
                 ghost.StopAI();
             }
         }
 
+        private void OnDestroy()
+        {
+            _cancellationTokenSource?.Cancel();
+        }
     }
 }

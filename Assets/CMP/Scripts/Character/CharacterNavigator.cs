@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Threading;
-using CMP.Scripts.AiStates;
 using CMP.Scripts.CellSource;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -10,8 +9,6 @@ namespace CMP.Scripts.Character
 	public class CharacterNavigator : MonoBehaviour
 	{
 		public CharacterMovement characterMovement;
-
-		private Vector2Int[] _directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
 		private GridData _gridData;
 
 		public void Inject(GridData gridData, float moveDuration)
@@ -20,33 +17,47 @@ namespace CMP.Scripts.Character
 			characterMovement.Inject(gridData, moveDuration);
 		}
 		
-		public async UniTask Navigate(ICellSource cellSource, IReadOnlyList<CellType> movableCells, CancellationToken cancellationToken)
+		public async UniTask Navigate(ICellSource cellSource, IReadOnlyList<CellType> movableCells, CancellationToken cancellationToken, bool onlySwitchDirectionOnCorners)
 		{
+			var oldDirection = Direction.None;
 			while (characterMovement.CurrentCell != cellSource.GetCell())
 			{
-				var direction = GetNextStepTowardsTarget(characterMovement.CurrentCell, cellSource.GetCell(), movableCells);
+				var direction = GetNextStepTowardsTarget(characterMovement.CurrentCell, cellSource.GetCell(), movableCells, onlySwitchDirectionOnCorners ? oldDirection.Reverse() : Direction.None);
 				characterMovement.SetDirection(direction);
 				await characterMovement.TryMove(movableCells, cancellationToken);
 				if (cancellationToken.IsCancellationRequested) return;
+				oldDirection = direction;
 			}
 		}
 		
-		private Vector2Int GetNextStepTowardsTarget(Vector2Int current, Vector2Int target, IReadOnlyList<CellType> movableCells)
+		private Direction GetNextStepTowardsTarget(Vector2Int current, Vector2Int target, IReadOnlyList<CellType> movableCells, Direction directionToIgnore)
 		{
-			Vector2Int bestDirection = _directions[0];
+			var directions = GameSettings.DirectionsToCheck;
+			Direction bestDirection = Direction.None;
 			float bestDistance = float.MaxValue;
-			foreach (var dir in _directions)
+			foreach (var dir in directions)
 			{
-				var nextPos = current + dir;
+				if (directionToIgnore == dir) continue;
+				var nextPos = current + dir.ToVector2Int();
+				if (!_gridData.IsCellMovable(nextPos, movableCells)) continue;
+				var dist = Vector2Int.Distance(nextPos, target);
+				if (!(dist < bestDistance)) continue;
+				bestDistance = dist;
+				bestDirection = dir;
+			}
+
+			if (bestDirection == Direction.None && directionToIgnore != Direction.None)
+			{
+				var nextPos = current + directionToIgnore.ToVector2Int();
 				if (_gridData.IsCellMovable(nextPos, movableCells))
 				{
-					var dist = Vector2Int.Distance(nextPos, target);
-					if (dist < bestDistance)
-					{
-						bestDistance = dist;
-						bestDirection = dir;
-					}
+					bestDirection = directionToIgnore;
 				}
+			}
+
+			if (bestDirection == Direction.None)
+			{
+				throw new System.Exception($"No valid direction found to move from {current} towards {target}!");
 			}
 
 			return bestDirection;

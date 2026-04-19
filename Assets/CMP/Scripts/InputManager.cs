@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace CMP.Scripts
 {
-    public enum InputDirection
+    public enum Direction
     {
         None,
         Left,
@@ -13,6 +13,9 @@ namespace CMP.Scripts
         Down
     }
     
+    //I feel like input could do better with an queue implementation
+    //new inputs go in to queue and has life time of 0.1 seconds
+    //need to try and play but don't have time
     public class InputManager : MonoBehaviour
     {
         public Button LeftButton;
@@ -20,26 +23,31 @@ namespace CMP.Scripts
         public Button UpButton;
         public Button DownButton;
 
-        InputDirection _currentDirection;
+        Direction _currentDirection;
+        
+        public Action<Direction> OnDirectionChanged;
         
         private void Awake()
         {
-            LeftButton.onClick.AddListener(() =>
-            {
-                _currentDirection = InputDirection.Left;
-            });
-            RightButton.onClick.AddListener(() =>
-            {
-                _currentDirection = InputDirection.Right;
-            });
-            UpButton.onClick.AddListener(() =>
-            {
-                _currentDirection = InputDirection.Up;
-            });
-            DownButton.onClick.AddListener(() =>
-            {
-                _currentDirection = InputDirection.Down;
-            });
+            LeftButton.onClick.AddListener(() => InputPressed(Direction.Left));
+            RightButton.onClick.AddListener(() => InputPressed(Direction.Right));
+            UpButton.onClick.AddListener(() => InputPressed(Direction.Up));
+            DownButton.onClick.AddListener(() => InputPressed(Direction.Down));
+        }
+
+        private void OnDestroy()
+        {
+            LeftButton.onClick.RemoveAllListeners();
+            RightButton.onClick.RemoveAllListeners();
+            UpButton.onClick.RemoveAllListeners();
+            DownButton.onClick.RemoveAllListeners();
+        }
+        
+        private void InputPressed(Direction direction)
+        {
+            if (_currentDirection == direction) return;
+            _currentDirection = direction;
+            OnDirectionChanged?.Invoke(direction);
         }
 
 #if UNITY_EDITOR
@@ -47,31 +55,31 @@ namespace CMP.Scripts
         {
             if (Input.GetKeyDown(KeyCode.W))
             {
-                _currentDirection = InputDirection.Up;
+                InputPressed(Direction.Up);
             }
             else if (Input.GetKeyDown(KeyCode.A))
             {
-                _currentDirection = InputDirection.Left;
+                InputPressed(Direction.Left);
             }
             else if (Input.GetKeyDown(KeyCode.S))
             {
-                _currentDirection = InputDirection.Down;
+                InputPressed(Direction.Down);
             }
             else if (Input.GetKeyDown(KeyCode.D))
             {
-                _currentDirection = InputDirection.Right;
+                InputPressed(Direction.Right);
             }
         }
 #endif
 
-        public InputDirection ConsumeInput()
+        public Direction ConsumeInput()
         {
             var dir = _currentDirection;
-            _currentDirection = InputDirection.None;
+            _currentDirection = Direction.None;
             return dir;
         }
         
-        public InputDirection PeekInput()
+        public Direction PeekInput()
         {
             return _currentDirection;
         }

@@ -24,8 +24,7 @@ namespace CMP.Scripts.AiStates
             bool up = true;
             while (true)
             {
-                var direction = up ? Vector2Int.up : Vector2Int.down;
-                characterMovement.SetDirection(direction);
+                characterMovement.SetDirection(up ? Direction.Up : Direction.Down);
                 if (! await characterMovement.TryMove(_movableCellTypes, token))
                 {
                     throw new Exception($"Ghost can't move up and down in {nameof(InHouseState)} state!");

@@ -1,5 +1,6 @@
 using System;
 using CMP.Scripts.AiStates;
+using CMP.Scripts.CellSource;
 using CMP.Scripts.Character;
 using UnityEngine;
 
@@ -13,7 +14,7 @@ namespace CMP.Scripts
         Chase,
     }
 
-    public class Ghost : MonoBehaviour
+    public class Ghost : MonoBehaviour, ICellSource
     {
         public CharacterNavigator navigator;
         public GhostStateMachine stateMachine;
@@ -24,7 +25,6 @@ namespace CMP.Scripts
         private InHouseState _inHouseState;
         private ScatterState _scatterState;
         private ChaseState _chaseState;
-        private bool _chasing;
 
         public void Inject(GridData gridData, Pacman pacman, Action onPackManSeen)
         {
@@ -56,7 +56,6 @@ namespace CMP.Scripts
         
         public void Chase()
         {
-            _chasing = true;
             if (_currentState != GhostState.Scatter) return;
             ChaseInternal();
         }
@@ -75,8 +74,12 @@ namespace CMP.Scripts
         private void OnJoinAction()
         {
             Debug.Log("Ghost joined game!");
-            if (_chasing) ChaseInternal();
-            else Scatter();
+            Scatter();
+        }
+
+        public Vector2Int GetCell()
+        {
+            return navigator.characterMovement.CurrentCell;
         }
     }
 }

@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Threading;
 using CMP.Scripts.CellSource;
 using CMP.Scripts.Character;
-using CMP.Scripts.Helper;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -21,14 +18,28 @@ namespace CMP.Scripts
         private InputManager _inputManager;
 
         private readonly CellType[] _movableCellTypes = { CellType.Empty, CellType.Pacman, CellType.JoinGameCell };
+        private bool IsMoving => !_moveCancellationToken?.IsCancellationRequested ?? false;
         
         public void Inject(GridData gridData, InputManager inputManager)
         {
             _gridData = gridData;
             _inputManager = inputManager;
             characterMovement.Inject(gridData, GameSettings.PacmanMovementDuration);
+            _inputManager.OnDirectionChanged += OnInputDirectionChanged;
         }
-        
+
+        //To support quick reverse
+        private void OnInputDirectionChanged(Direction direction)
+        {
+            if (!IsMoving || characterMovement.GetDirection() != direction.Reverse())
+            {
+                return;
+            }
+
+            StopMoving();
+            StartMoving();
+        }
+
         public void StartMoving()
         {
             _moveCancellationToken = new CancellationTokenSource();
@@ -47,8 +58,7 @@ namespace CMP.Scripts
                 HandleRotate();
                 if (!await characterMovement.TryMove(_movableCellTypes, cancellationToken))
                 { 
-                    await UniTask.WaitForSeconds(GameSettings.PacmanMovementDuration, 
-                        cancellationToken: cancellationToken).SuppressCancellationThrow();
+                    await UniTask.NextFrame(cancellationToken: cancellationToken).SuppressCancellationThrow();
                 }
 
                 if (cancellationToken.IsCancellationRequested)
@@ -60,14 +70,13 @@ namespace CMP.Scripts
 
         private void HandleRotate()
         {
-            var input = _inputManager.PeekInput();
-            if (input == InputDirection.None)
+            var direction = _inputManager.PeekInput();
+            if (direction == Direction.None)
             {
                 return;
             }
             
-            var direction = Utility.InputDirectionToDirection(input);
-            var targetCell = characterMovement.CurrentCell + direction;
+            var targetCell = characterMovement.CurrentCell + direction.ToVector2Int();
             if (_gridData.IsCellMovable(targetCell, _movableCellTypes))
             {
                 _inputManager.ConsumeInput();
@@ -84,6 +93,14 @@ namespace CMP.Scripts
         public Vector2Int GetCell()
         {
             return characterMovement.CurrentCell;
+        }
+
+        private void OnDestroy()
+        {
+            if (_inputManager)
+            {
+                _inputManager.OnDirectionChanged -= OnInputDirectionChanged;
+            }
         }
     }
 }

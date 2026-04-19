@@ -1,10 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace CMP.Scripts.Character
 {
@@ -14,37 +12,36 @@ namespace CMP.Scripts.Character
 		
 		private GridData _gridData;
 		private CancellationTokenSource _moveCancellationToken;
-		private float _moveDuration;
+		private float _moveSpeed;
 		
 		public Vector2Int CurrentCell => _gridData.GetClosestCell(transform.position);
 
 		public void Inject(GridData gridData, float moveDuration)
 		{
 			_gridData = gridData;
-			_moveDuration = moveDuration;
+			_moveSpeed = 1f / moveDuration;
 		}
 
 		public async UniTask<bool> TryMove(IReadOnlyList<CellType> movableCells, CancellationToken cancellationToken)
 		{
-			var nextCell = CurrentCell + GetDirection();
+			var nextCell = CurrentCell + GetDirection().ToVector2Int();
 			if (!_gridData.IsCellMovable(nextCell, movableCells)) return false;
 			
 			var target = new Vector3(nextCell.x, nextCell.y, transform.position.z);
-			await transform.DOMove(target, _moveDuration).ToUniTask(cancellationToken: cancellationToken).SuppressCancellationThrow();
+			await transform.DOMove(target, _moveSpeed).SetSpeedBased(true).SetEase(Ease.Linear).WithCancellation(cancellationToken);
 			return true;
 		}
 
-		public Vector2Int GetDirection()
+		public Direction GetDirection()
 		{
-			var up = rotationTransforms[0].up;
-			return new Vector2Int(Mathf.RoundToInt(up.x), Mathf.RoundToInt(up.y));
+			return rotationTransforms[0].up.ToDirection();
 		}
 		
-		public void SetDirection(Vector2Int direction)
+		public void SetDirection(Direction direction)
 		{
 			foreach (var tr in rotationTransforms)
 			{
-				tr.up = new Vector3(direction.x, direction.y, 0f);
+				tr.up = direction.ToVector3();
 			}
 		}
 		
