@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace CMP.Scripts
@@ -58,7 +59,7 @@ namespace CMP.Scripts
             return Grid[y * Width + x];
         }
         
-        public bool IsCellMovable(Vector2Int cellCoords, List<CellType> availableCells)
+        public bool IsCellMovable(Vector2Int cellCoords, IReadOnlyList<CellType> availableCells)
         {
             return GetInBounds(cellCoords) && availableCells.Contains(GetCellAt(cellCoords));
         }
@@ -66,6 +67,12 @@ namespace CMP.Scripts
         public Vector2Int GetClosestCell(Vector3 position)
         {
             return new Vector2Int(Mathf.RoundToInt(position.x), Mathf.RoundToInt(position.y));
+        }
+
+        public CellType GetCellAtPosition(Vector3 position)
+        {
+            var cellCoords = GetClosestCell(position);
+            return GetCellAtOrDefault(cellCoords, CellType.Invalid);
         }
     }
 }

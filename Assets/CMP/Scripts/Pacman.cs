@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
+using CMP.Scripts.CellSource;
 using CMP.Scripts.Character;
 using CMP.Scripts.Helper;
 using Cysharp.Threading.Tasks;
@@ -7,7 +9,7 @@ using UnityEngine;
 
 namespace CMP.Scripts
 {
-    public class Pacman : MonoBehaviour
+    public class Pacman : MonoBehaviour, ICellSource
     {
         public CharacterMovement characterMovement;
         
@@ -18,8 +20,8 @@ namespace CMP.Scripts
         private GridData _gridData;
         private InputManager _inputManager;
 
-        private readonly List<CellType> _movableCellTypes = new() { CellType.Empty, CellType.Pacman, CellType.JoinGameCell };
-
+        private readonly CellType[] _movableCellTypes = { CellType.Empty, CellType.Pacman, CellType.JoinGameCell };
+        
         public void Inject(GridData gridData, InputManager inputManager)
         {
             _gridData = gridData;
@@ -43,7 +45,7 @@ namespace CMP.Scripts
             while (true)
             {
                 HandleRotate();
-                if (!await characterMovement.TryMove(cancellationToken, _movableCellTypes))
+                if (!await characterMovement.TryMove(_movableCellTypes, cancellationToken))
                 { 
                     await UniTask.WaitForSeconds(GameSettings.PacmanMovementDuration, 
                         cancellationToken: cancellationToken).SuppressCancellationThrow();
@@ -65,12 +67,23 @@ namespace CMP.Scripts
             }
             
             var direction = Utility.InputDirectionToDirection(input);
-            var targetCell = characterMovement.CurrentGridPosition + direction;
+            var targetCell = characterMovement.CurrentCell + direction;
             if (_gridData.IsCellMovable(targetCell, _movableCellTypes))
             {
                 _inputManager.ConsumeInput();
                 characterMovement.SetDirection(direction);
             }
+        }
+
+        public void OnFail()
+        {
+            Animator.Play(FailAnimationName);
+            StopMoving();
+        }
+
+        public Vector2Int GetCell()
+        {
+            return characterMovement.CurrentCell;
         }
     }
 }

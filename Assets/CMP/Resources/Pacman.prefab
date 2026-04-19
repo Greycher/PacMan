@@ -160,8 +160,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df237692d9934ea58112c2e39ef29f90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Animator: {fileID: 8553525815565296724}
   characterMovement: {fileID: -7760719171578185006}
+  Animator: {fileID: 8553525815565296724}
 --- !u!114 &-7760719171578185006
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -174,3 +174,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e150147e9c564a78aaba1c53f9e7782e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CMP.Scripts.Character.CharacterMovement
+  rotationTransforms:
+  - {fileID: 4400281737324402527}

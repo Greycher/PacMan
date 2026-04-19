@@ -10,11 +10,13 @@ namespace CMP.Scripts.Character
 {
 	public class CharacterMovement : MonoBehaviour
 	{
+		public Transform[] rotationTransforms;
+		
 		private GridData _gridData;
 		private CancellationTokenSource _moveCancellationToken;
 		private float _moveDuration;
 		
-		public Vector2Int CurrentGridPosition => _gridData.GetClosestCell(transform.position);
+		public Vector2Int CurrentCell => _gridData.GetClosestCell(transform.position);
 
 		public void Inject(GridData gridData, float moveDuration)
 		{
@@ -22,27 +24,29 @@ namespace CMP.Scripts.Character
 			_moveDuration = moveDuration;
 		}
 
-		public async UniTask<bool> TryMove(CancellationToken cancellationToken, List<CellType> movableCells)
+		public async UniTask<bool> TryMove(IReadOnlyList<CellType> movableCells, CancellationToken cancellationToken)
 		{
-			var currentCell = _gridData.GetClosestCell(transform.position);
-			var nextCell = currentCell + GetDirection();
+			var nextCell = CurrentCell + GetDirection();
 			if (!_gridData.IsCellMovable(nextCell, movableCells)) return false;
 			
 			var target = new Vector3(nextCell.x, nextCell.y, transform.position.z);
 			await transform.DOMove(target, _moveDuration).ToUniTask(cancellationToken: cancellationToken).SuppressCancellationThrow();
 			return true;
-
 		}
 
 		public Vector2Int GetDirection()
 		{
-			var up = transform.up;
+			var up = rotationTransforms[0].up;
 			return new Vector2Int(Mathf.RoundToInt(up.x), Mathf.RoundToInt(up.y));
 		}
 		
 		public void SetDirection(Vector2Int direction)
 		{
-			transform.up = new Vector3(direction.x, direction.y, 0f);
+			foreach (var tr in rotationTransforms)
+			{
+				tr.up = new Vector3(direction.x, direction.y, 0f);
+			}
 		}
+		
 	}
 }
